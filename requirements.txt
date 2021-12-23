@@ -1,5 +1,6 @@
 # base =====
-torch 
+torch
+torchmetrics
 pytorch-lightning
 
 # log ======
