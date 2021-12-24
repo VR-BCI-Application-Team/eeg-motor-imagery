@@ -3,5 +3,10 @@ torch
 torchmetrics
 pytorch-lightning
 
+# preprocess
+mne
+matplotlib
+scikit-learn
+
 # log ======
 wandb

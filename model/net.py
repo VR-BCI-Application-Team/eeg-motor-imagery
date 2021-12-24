@@ -8,6 +8,7 @@ import pytorch_lightning as pl
 
 class EGGNet(nn.Module):
     def __init__(self):
+        # model from: https://github.com/aliasvishnu/EEGNet/
         super(EGGNet, self).__init__()
         self.T = 120
         
