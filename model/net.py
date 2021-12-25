@@ -7,13 +7,13 @@ import pytorch_lightning as pl
   
 
 class EGGNet(nn.Module):
-    def __init__(self):
+    def __init__(self, n_channels=64, timestamp=120):
         # model from: https://github.com/aliasvishnu/EEGNet/
         super(EGGNet, self).__init__()
-        self.T = 120
-        
         # Layer 1
-        self.conv1 = nn.Conv2d(1, 16, (1, 64), padding = 0)
+        self.T = timestamp
+        self.n_channels = n_channels
+        self.conv1 = nn.Conv2d(1, 16, (1, n_channels), padding = 0)
         self.batchnorm1 = nn.BatchNorm2d(16, False)
         
         # Layer 2
@@ -29,11 +29,12 @@ class EGGNet(nn.Module):
         self.pooling3 = nn.MaxPool2d((2, 4))
         
         # FC Layer
-        # NOTE: This dimension will depend on the number of timestamps per sample
-        self.fc1 = nn.Linear(4*2*7, 1)
+        self.fc1 = nn.Linear(4*2*8, 1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
+        assert x.shape[-2:] == (126, self.n_channels), (
+            f"Miss match input shape, got ({x.shape})")
         # Layer 1
         x = F.elu(self.conv1(x))
         x = self.batchnorm1(x)
@@ -55,7 +56,7 @@ class EGGNet(nn.Module):
         x = self.pooling3(x)
         
         # FC Layer
-        x = x.contiguous().view(-1, 4*2*7)
+        x = x.contiguous().view(-1, 4*2*8)
         x = self.sigmoid(self.fc1(x))
         return x
 
