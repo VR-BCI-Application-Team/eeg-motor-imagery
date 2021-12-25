@@ -13,6 +13,7 @@ def args():
     parser.add_argument('--epoch', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('--gpus', type=int, default=1)
     parser = pl.Trainer.add_argparse_args(parser)
     return parser.parse_args()
 

@@ -33,8 +33,11 @@ class EGGNet(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        assert x.shape[-2:] == (126, self.n_channels), (
+        assert x.shape[-2:] == (self.n_channels, 126), (
             f"Miss match input shape, got ({x.shape})")
+        # Permute [x, y, 25, 126] -> [x, y, 126, 25]
+        x = x.permute(0, 1, 3, 2)
+
         # Layer 1
         x = F.elu(self.conv1(x))
         x = self.batchnorm1(x)
@@ -80,7 +83,7 @@ class Classifier(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y, _ = batch
         preds = self.backbone(x.float())
-        loss = nn.BCELoss(preds, y)
+        loss = nn.BCELoss(preds.squeeze().float(), y.float())
 
         # metrics
         self.accuracy(preds, y)  # same shape, or 2D vs 1D
