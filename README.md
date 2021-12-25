@@ -4,7 +4,7 @@
 **Notes:** ⚠️ *This document is under construction, please raise issues if you need anything.*
 
 # The dataset
-We've preprocessed the BCI IV 2a and trunked it into event.
+We've preprocessed the BCI IV 2a and trunked it into `event`.
 
 # How to train
 Install requirements
@@ -14,7 +14,7 @@ pip install -r requirements.txt
 
 Training with argparse
 ```shell
-python train.py --gpus 1 --batch_size 16 --lr 1e-3
+python train.py --gpus 1 --batch_size 16 --lr 1e-3 --max_epochs 10
 ```
 
 # Reference

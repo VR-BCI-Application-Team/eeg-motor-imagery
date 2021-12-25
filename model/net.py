@@ -96,7 +96,7 @@ class Classifier(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y, _ = batch
         preds = self.backbone(x.float())
-        loss = nn.BCELoss(preds, y)
+        loss = nn.BCELoss(preds.squeeze().float(), y.float())
 
         # metrics
         self.accuracy(preds, y)

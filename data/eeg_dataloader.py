@@ -58,11 +58,11 @@ class EGGDataloader(pl.LightningDataModule):
         pass
 
     def setup(self, stage: Optional[str] = None) -> None:
-        self.egg_train_set = EGGDataloader(self.data_dir, transform=self.transform)
-        self.egg_eval_set = EGGDataloader(self.data_dir, is_train=False, transform=self.transform)
+        self.egg_train_set = EGGDataset(self.data_dir, transform=self.transform)
+        self.egg_eval_set = EGGDataset(self.data_dir, is_train=False, transform=self.transform)
 
     def train_dataloader(self) -> TRAIN_DATALOADERS:
         return DataLoader(self.egg_train_set, batch_size=self.batch_size, shuffle=True)
 
     def val_dataloader(self) -> EVAL_DATALOADERS:
-        return DataLoader(self.egg_eval_set, batch_size=self.batch_size)
+        return DataLoader(self.egg_eval_set, batch_size=self.batch_size, shuffle=False)
