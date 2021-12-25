@@ -1,4 +1,7 @@
 .idea
 .vscode
 wandb
+*.zip
+exp/
+egg-motor-imagery/
 **/__pycache__

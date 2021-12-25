@@ -4,6 +4,8 @@ import torch.nn.functional as F
 import torchmetrics
 
 import pytorch_lightning as pl
+
+import wandb
   
 
 class EGGNet(nn.Module):
@@ -68,42 +70,59 @@ class EGGNet(nn.Module):
 
 
 class Classifier(pl.LightningModule):
-    def __init__(self) -> None:  
+    def __init__(self, learning_rate=1e-3, n_channels=25) -> None:  
         super().__init__()
-        self.backbone = EGGNet()
-        self.accuracy = torchmetrics.Accuracy()
-        # self.auc = torchmetrics.AUROC()
-        # self.recall = torchmetrics.Recall()
-        # self.precision = torchmetrics.Precision()
-
+        self.backbone = EGGNet(n_channels=n_channels)
+        self.learning_rate = learning_rate
+        self.train_acc = torchmetrics.Accuracy()
+        self.valid_acc = torchmetrics.Accuracy()
+        self.train_F1acc = torchmetrics.F1(num_classes=2, multiclass=True)
+        self.valid_F1acc = torchmetrics.F1(num_classes=2, multiclass=True)
 
     def forward(self, x):
         return self.backbone(x)
 
     def training_step(self, batch, batch_idx):
-        x, y, _ = batch
-        preds = self.backbone(x.float())
-        loss = nn.BCELoss(preds.squeeze().float(), y.float())
+        x, y = batch
+        preds = self.backbone(x.float()).squeeze()
+        loss = F.binary_cross_entropy(preds.float(), y.float())
 
         # metrics
-        self.accuracy(preds, y)  # same shape, or 2D vs 1D
+        self.train_acc(preds, y.int())
+        self.train_F1acc(preds, y.int())
 
         # logging
         self.log('Train/loss', loss, on_epoch=True)
-        self.log('Train/accuracy', self.accuracy, on_epoch=True)
-        return loss
+        self.log('Train/accuracy', self.train_acc, on_epoch=True)
+        self.log('Train/F1_step', self.train_F1acc)
+        
+        return {"loss": loss, "preds": preds.detach(), "targets": y}
+
+    def training_epoch_end(self, outputs):
+        mean_F1 = self.train_F1acc.compute()
+        self.log('Train/F1_epoch', mean_F1)
+        self.train_F1acc.reset()
 
     def validation_step(self, batch, batch_idx):
-        x, y, _ = batch
-        preds = self.backbone(x.float())
-        loss = nn.BCELoss(preds.squeeze().float(), y.float())
+        x, y = batch
+        preds = self.backbone(x.float()).squeeze()
+        loss = F.binary_cross_entropy(preds.float(), y.float())
 
         # metrics
-        self.accuracy(preds, y)
+        self.valid_acc(preds, y.int())
+        self.valid_F1acc(preds, y.int())
 
         # logging
-        self.log('Valid/loss', loss, on_step=True)
-        self.log('Valid/accuracy', self.accuracy, on_epoch=True, prog_bar=True)
+        self.log('Valid/loss', loss, on_epoch=True)
+        self.log('Valid/accuracy', self.valid_acc, on_epoch=True)
+        self.log('Valid/F1_step', self.valid_F1acc)
+
+        return {"loss":loss, "preds": preds.detach(), "targets": y}
+
+    def validation_epoch_end(self, outs):
+        mean_F1 = self.valid_F1acc.compute()
+        self.log('Valid/F1_epoch', mean_F1)
+        self.valid_F1acc.reset()
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)
+        return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
