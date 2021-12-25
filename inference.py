@@ -24,8 +24,8 @@ if __name__ == "__main__":
 
 
     # predict
-    pred = inference()
-    # pred = np.random.randint(-1, 2, size=100)
+    # pred = inference()
+    pred = np.random.randint(-1, 2, size=100)
 
     # TODO: send to server
     for timestamp in pred:
