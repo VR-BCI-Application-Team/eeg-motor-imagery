@@ -1,5 +1,6 @@
 # base =====
 torch
+torchvision
 torchmetrics
 pytorch-lightning
 
