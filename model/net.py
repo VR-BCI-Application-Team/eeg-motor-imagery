@@ -93,12 +93,14 @@ class Classifier(pl.LightningModule):
 
         # logging
         self.log('Train/loss', loss, on_epoch=True)
-        self.log('Train/accuracy', self.train_acc, on_epoch=True)
+        self.log('Train/accuracy_step', self.train_acc)
         self.log('Train/F1_step', self.train_F1acc)
         
         return {"loss": loss, "preds": preds.detach(), "targets": y}
 
     def training_epoch_end(self, outputs):
+        self.log('Train/accuracy_epoch', self.train_acc)
+
         mean_F1 = self.train_F1acc.compute()
         self.log('Train/F1_epoch', mean_F1)
         self.train_F1acc.reset()
@@ -114,12 +116,14 @@ class Classifier(pl.LightningModule):
 
         # logging
         self.log('Valid/loss', loss, on_epoch=True)
-        self.log('Valid/accuracy', self.valid_acc, on_epoch=True)
+        self.log('Valid/accuracy_step', self.valid_acc)
         self.log('Valid/F1_step', self.valid_F1acc)
 
         return {"loss":loss, "preds": preds.detach(), "targets": y}
 
     def validation_epoch_end(self, outs):
+        self.log('Valid/accuracy_epoch', self.valid_acc)
+
         mean_F1 = self.valid_F1acc.compute()
         self.log('Valid/F1_epoch', mean_F1)
         self.valid_F1acc.reset()

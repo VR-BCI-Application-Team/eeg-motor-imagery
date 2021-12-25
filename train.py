@@ -43,7 +43,7 @@ def main():
     trainer = pl.Trainer.from_argparse_args(
         args=opt,
         # auto_lr_find=True,
-        log_every_n_steps=10,
+        log_every_n_steps=1,
         logger=wandb_logger,
         callbacks=[checkpoint_callbacks, wandb_callbacks]
     )
