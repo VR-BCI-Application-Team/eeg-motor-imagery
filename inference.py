@@ -1,3 +1,4 @@
+import os
 import time
 import socketio
 import argparse
@@ -29,32 +30,55 @@ def args():
 def inference(model, data, lo_thres=0.5, hi_thres=0.7):
     # Left = 0; Right = 1; Other = -1
     model.eval()
-    input = torch.from_numpy(data)[None, None, :].float()
-    pred = model(input).squeeze().detach().numpy()
+    input = torch.from_numpy(data)
+    if len(input.shape) == 2:
+        input = input[None, None, :]
+    elif len(input.shape) == 3:
+        input = input.unsqueeze(1)
 
-    if pred > hi_thres:
-        return 1
-    elif pred < lo_thres:
-        return 0
-    else: 
-        return -1
+    pred = model(input.float()).squeeze().detach().numpy()
+
+    if pred.ndim <= 0:
+        pred = [pred]
+
+    res = []
+    for item in pred:
+        if item > hi_thres:
+            res.append(1)
+        elif item < lo_thres:
+            res.append(0)
+        else: 
+            res.append(-1)
+    
+    return res
 
 
 def emit(name='signal', value: int = -1):
+    print('VALUE', value)
     sio.emit(name, {'direction': value})
 
 
 if __name__ == "__main__":
     opt = args()
-    # TODO: load input data and model
-    data = np.load(opt.data_path)  # demo
+    # TODO: load input and preprocess sequence data
+    if os.path.isfile(opt.data_path):
+        data = np.load(opt.data_path)  # demo
+    elif os.path.isdir(opt.data_path):
+        files = os.listdir(opt.data_path)
+        data = []
+        for file in files:
+            data.append(np.load(os.path.join(opt.data_path, file)))
+        data = np.array(data)
+    else:
+        raise Exception('`data_path` are not specific')
 
     model = Classifier()
     model.load_from_checkpoint(opt.model_path)
 
-    # predict
+    # # predict
     pred = inference(model, data, opt.lo_thres, opt.hi_thres)
-    print('AFTER_THRES', pred)
 
+    print(len(pred))
+    
     for timestamp in pred:
         emit(value = int(timestamp))
