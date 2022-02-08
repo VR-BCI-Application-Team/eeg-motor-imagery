@@ -1,5 +1,5 @@
 # EEG Motor Imagery
-🍳 An EGG neural network for Motor Imagery task
+🍳 An EEG neural network for Motor Imagery task
 
 **Notes:** ⚠️ *This document is under construction, please raise issues if you need anything.*
 
